@@ -1,8 +1,8 @@
 --=============================================================
---2022.02.11-14...02.22
+--2022.02.11-14...02.22..2024.01.21-26
 --=============================================================
 local market={} market.chest={} market.me={}
-market.version='1.00'
+market.version='1.10'
 local fs=require('filesystem')
 local component=require('component')
 local gpu=require('component').gpu

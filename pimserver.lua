@@ -1,4 +1,4 @@
---pimserver
+--pimserver 1.1
 local pimserver={}
 pimserver.version='1.00'
 local db={}
@@ -78,7 +78,6 @@ function pimserver.getOwners(sender)
 	msg.owners=owners
 	pimserver.post(msg)
 end
-
 --отсылка подтверждения регистрации
 function pimserver.accept(msg)
 	local who = msg[6]
@@ -88,7 +87,6 @@ function pimserver.accept(msg)
 		end
 	end
 	if who then return true end
-	
 	local x,y = msg[3],msg[4]
 	--if msg[6]==adminname then
 	if x < 4 and y == 1 then
@@ -133,7 +131,6 @@ function pimserver.place()
 	end
 	return true
 end
-
 --первичная регистрация игрока
 function pimserver.enter(msg)
 	if not db[msg.name] then pimserver.newUser(msg.name)
@@ -142,7 +139,6 @@ function pimserver.enter(msg)
 	end
 	return pimserver.broadcast(msg)
 end
-
 --проверка наличия имени в базе данных
 function pimserver.isRegistered(msg)
 	if not db[msg.name2] then 
@@ -152,7 +148,6 @@ function pimserver.isRegistered(msg)
 	end
 	return pimserver.broadcast(msg)
 end
-
 --перевод со счета на счет
 function pimserver.transfer(msg)
 	if not db[msg.name2] then pimserver.newUser(msg.name2)
@@ -162,13 +157,11 @@ function pimserver.transfer(msg)
 	db[msg.name2].balance=db[msg.name2].balance + msg.value
 	return pimserver.broadcast(msg)
 end
-
 --вычитание с баланса при покупке
 function pimserver.buy(msg)
 	db[msg.name].balance=db[msg.name].balance - msg.value
 	return pimserver.broadcast(msg)
 end
-
 --различные операции вызываемые по ключу в сообщении
 function pimserver.sell(msg)
 	db[msg.name].balance=db[msg.name].balance + msg.value
@@ -188,7 +181,6 @@ function pimserver.broadcast(msg)
 	local post={sender=sender,number=number,name=name,balance=balance,op=op}
 	if msg.new then post.new='new' end
 	pimserver.post(post)	
-
 	--[[if not log[msg.sender] then log[msg.sender]={} end
 		log[msg.sender][msg.number]={name=msg.name,op=msg.op,val=msg.value}
 	local line='['..serialization.serialize(msg.sender)..']'..'['..serialization.serialize(msg.number)..']'..serialization.serialize(log[msg.sender][msg.mnumber])
@@ -202,7 +194,6 @@ local post = serialization.serialize(msg)
 	return modem.broadcast(send,post)
 end
 
-
 function pimserver.newUser(name)
 	db[name]={}
 	db[name].balance='0'
@@ -210,7 +201,7 @@ function pimserver.newUser(name)
 	db[name].income='0'
 	return pimserver.saveFile()
 end
-
+--создание овнер-листа посредством пим
 function pimserver.WaitToNewOwner()
 	if not owners[1] then
 		print('Встаньте на ПИМ для регистрации первого владельца')
@@ -225,7 +216,6 @@ function pimserver.regOwner(a)
 	print('Благодарю. владелец '..#owners..' '..a[2]..'  UUID:'..a[3]..'  зарегестрирован')
 	return pimserver.saveOwnersTable()
 end
-
 --сохранение терминалов в файл
 function pimserver.saveTerminalsToFile()
 	local dbs=io.open('terminals.pimserver','w')
@@ -235,7 +225,6 @@ function pimserver.saveTerminalsToFile()
 	dbs:close()
 	return true
 end
-
 --загрузка терминалов из файла
 function pimserver.loadTerminalsFromFile()
 	terminal={}
@@ -252,7 +241,7 @@ function pimserver.loadTerminalsFromFile()
 		
 		dbs:close()
 		return terminal
-	end
+end
 
 function pimserver.saveFile()
 	local dbs=io.open('db.pimserver','w')
@@ -291,6 +280,7 @@ function pimserver.loadOwnersTable()
 	owners=serialization.unserialize(file:read('*a'))
 	return true
 end
+
 function pimserver.saveOwnersTable()
 	local file=io.open('owners.pimserver','w')
 	local data=serialization.serialize(owners)
@@ -314,20 +304,17 @@ function pimserver.init()
 		pimserver.WaitToNewOwner()
 	end
 	pimserver.place()
-	--[[if not fs.exists('home/logs.pimserver')then
-		local lg=io.open('logs.pimserver','w')
-		log.fakesender={}
-		log.fakesender[1]={name='Taoshi',op='init',val='1'}
-		lg:write(serialization.serialize(log))
-		lg:close()
-	end]]
 	return true
 end
---создание овнер-листа посредством пим
 
+function wakeUp()
+	local msg = 'name'
+  modem.broadcast(send,msg)
+  return true
+end
+
+event.timer(15,wakeUp,math.huge)
 gpu.setResolution(76,24)
 pimserver.init()
-
 print('Сервер поднят.')
-modem.broadcast(send,'name')
 return pimserver
