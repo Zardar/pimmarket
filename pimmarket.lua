@@ -4,11 +4,10 @@
 local market={} market.chest={} market.me={}
 market.version='1.00'
 local fs=require('filesystem')
-local gpu=require('component').gpu
 local component=require('component')
+local gpu=require('component').gpu
 local computer=require('computer')
 local pullSignal=computer.pullSignal
-local pim=require('component').pim
 local event=require('event')
 local modem=require('component').modem
 local table=require('table')
@@ -19,12 +18,15 @@ local serialization=require("serialization")
 local zero, one = 0, 1
 local unicode=require('unicode')
 local me=''
-
+local pim={}
+if component.isAvailable('pim') then 
+  pim=require('component').pim
+end
 market.workmode='chest'
 market.link = 'unlinked'
 market.serverAddress = ''
 modem.open(port)
-modem.setWakeMessage='name'
+modem.setWakeMessage('name')
 market.msgnum=14041
 market.pimmoney='item.npcmoney'
 --лист с полями sell_price, buy_price, qty, display_name, и ключом raw_name
@@ -87,14 +89,13 @@ market.button={
 	eula4={x=5,xs=67,y=9,ys=1,text='Обменник эмов на НПЦ мани стоит на спавне -',tx=1,ty=0,bg=0x303030,fg=0x68f029},
 	eula5={x=5,xs=67,y=11,ys=1,text='сдача от покупки зачислится на Пим-счёт игрока.',tx=1,ty=0,bg=0x303030,fg=0x68f029},
 	eula6={x=5,xs=67,y=13,ys=1,text='Этот счёт автоматически используется при последующих покупках.',tx=1,ty=0,bg=0x303030,fg=0x68f029},
-	eula7={x=5,xs=67,y=15,ys=1,text='Курс Пим к НПЦ составляет 10 к 1.',tx=1,ty=0,bg=0x303030,fg=0x68f029},
-	eula8={x=5,xs=67,y=17,ys=1,text='Все цены в магазине указаны в Пимах.',tx=1,ty=0,bg=0x303030,fg=0x68f029},
+	eula7={x=5,xs=67,y=15,ys=1,text='Все цены в магазине указаны в Эмах.',tx=1,ty=0,bg=0x303030,fg=0x68f029},
 	eula9={x=5,xs=67,y=19,ys=1,text='Если вы согласны с предоставленными условиями пользования',tx=1,ty=0,bg=0x303030,fg=0x68f029},
 	eula10={x=5,xs=67,y=21,ys=1,text='подтвердите согласием',tx=1,ty=0,bg=0x303030,fg=0x68f029},
 	eula11={x=30,xs=19,y=24,ys=1,text='СОГЛАСЕН/СОГЛАСНА',tx=1,ty=0,bg=0xf2b233,fg=0x111111},
 	eula12={x=51,xs=26,y=24,ys=1,text='discord автора:taoshi#2664',tx=0,ty=0,bg=0x103010,fg=0xf2b233},
 	eula13={x=1,xs=28,y=23,ys=1,text='по всем вопросам о товаре',tx=0,ty=0,bg=0x103010,fg=0xf2b233},
-	eula14={x=1,xs=28,y=24,ys=1,text='пишите владельцу kosta1809',tx=0,ty=0,bg=0x103010,fg=0xf2b233},
+	eula14={x=1,xs=28,y=24,ys=1,text='пишите владельцу варпа',tx=0,ty=0,bg=0x103010,fg=0xf2b233},
 
 	player={x=3,xs=10,y=1,ys=1,text='name',tx=1,ty=0,bg=0x303030,fg=0x68f029},
 	status={x=3,xs=10,y=2,ys=1,text='player',tx=1,ty=0,bg=0x303030,fg=0x68f029},
@@ -104,7 +105,6 @@ market.button={
 	cash={x=3,xs=10,y=6,ys=1,text='NPC money:',tx=0,ty=0,bg=0x303030,fg=0x68f029},
 	balancename={x=3,xs=10,y=7,ys=1,text='ПИМ-мани:',tx=0,ty=0,bg=0x303030,fg=0x68f029},
 	balance={x=3,xs=10,y=8,ys=1,text='lua coins:',tx=0,ty=0,bg=0x303030,fg=0x68f029},
-	ratio={x=3,xs=10,y=9,ys=1,text='1нпс=10пим',tx=0,ty=0,bg=0x303030,fg=0x68f029},
 
 	one={x=17,xs=6,y=4,ys=3,text='1',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	two={x=25,xs=6,y=4,ys=3,text='2',tx=2,ty=1,bg=0x303030,fg=0x68f029},
@@ -130,8 +130,8 @@ market.button={
 	newname={x=26,xs=4,y=16,ys=3,text='newname',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	acceptbuy={x=41,xs=24,y=16,ys=3,text='подтвердить',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	cancel={x=34,xs=10,y=24,ys=1,text='отмена',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	search={x=48,xs=10,y=24,ys=1,text='поиск',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	searchInput={x=60,xs=10,y=24,ys=1,text='Найти:',tx=2,ty=0,bg=0x303030,fg=0x68f029},
+	find={x=48,xs=10,y=24,ys=1,text='поиск',tx=2,ty=0,bg=0x303030,fg=0x68f029},
+	findInput={x=60,xs=10,y=24,ys=1,text='Найти:',tx=2,ty=0,bg=0x303030,fg=0x68f029},
 
 	welcome={x=24,xs=32,y=12,ys=3,text='добро пожаловать в ПимМаркет',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	name={x=32,xs=24,y=8,ys=3,text='name',tx=2,ty=1,bg=0x303030,fg=0x68f029},
@@ -153,15 +153,15 @@ market.button={
 	shopUp={x=3,xs=10,y=12,ys=5,text='ВВЕРХ',tx=2,ty=2,bg=0x303030,fg=0x68f029},
 	shopDown={x=3,xs=10,y=18,ys=5,text='ВНИЗ',tx=3,ty=2,bg=0x303030,fg=0x68f029},
 	shopTopRight={x=21,xs=55,y=1,ys=1,text='Available items                           к-во     цена',tx=0,ty=0,bg=0xc49029,fg=0x000000},
-	shopFillRight={x=21,xs=40,y=2,ys=20,text='',tx=0,ty=0,bg=0x303030,fg=0x68f029},
-	shopVert={x=68,xs=1,y=2,ys=20,text=' ',tx=0,ty=0,bg=0xc49029,fg=0x111111}
+	shopFillRight={x=21,xs=40,y=2,ys=21,text='',tx=0,ty=0,bg=0x303030,fg=0x68f029},
+	shopVert={x=68,xs=1,y=2,ys=21,text=' ',tx=0,ty=0,bg=0xc49029,fg=0x111111}
 }
 
 --это обработчик экрана.
 --содержит все функции вызываемые кнопками
 --в том числе меняющие содержимое экрана
 market.screenActions={}
-market.screenActions.search=function()return market.search() end
+market.screenActions.find=function()return market.find() end
 market.screenActions.eula11=function()return market.mainMenu() end
 market.screenActions.sell=function()return false end
 market.screenActions.buy=function()return market.inShopMenu()end
@@ -187,15 +187,14 @@ market.screenActions.acceptbuy=function() return market.getNewBalance() end
 --================================================================
 market.screenActions.shopTopRight=function() end
 market.screenActions.shopVert=function() end
-market.screenActions.shopUp=function()if market.shopLine > 10 then
-	market.shopLine=market.shopLine-10 end return market.showMeYourCandyesBaby(market.itemlist,market.inumList) end
-market.screenActions.shopDown=function()if market.itemlist.size-10 > market.shopLine then
-	market.shopLine=market.shopLine+10 end return market.showMeYourCandyesBaby(market.itemlist,market.inumList) end
+market.screenActions.shopUp=function()if market.shopLine > 15 then
+	market.shopLine=market.shopLine-15 end return market.showMeYourCandyesBaby(market.itemlist,market.inumList) end
+market.screenActions.shopDown=function()if market.itemlist.size-15 > market.shopLine then
+	market.shopLine=market.shopLine+15 end return market.showMeYourCandyesBaby(market.itemlist,market.inumList) end
 market.screenActions.shopFillRight=function(_,y)--ловит выбор игроком предмета
 	market.selectedLine = y+market.shopLine-2
-	gpu.set(68,23,tostring(market.selectedLine))
 	if market.selectedLine <= #market.inumList then
-	market.select=market.inumList[market.selectedLine]
+	market.select=market.inumList[market.lot[y]]--market.inumList[market.selectedLine]
 	market.button.select.text=market.itemlist[market.select].display_name
 	market.button.select.xs=#market.itemlist[market.select].display_name+4
 	return market[market.mode](market.selectedLine)
@@ -207,8 +206,8 @@ market.screenActions.set=function()return market.inputNumber('set') end
 market.screenActions.cancel=function()
 	market.number = '0'
 	market.totalprice = '0'
-	market.button.number.text=' '
-	market.button.totalprice.text=' '
+	market.button.number.text='0'
+	market.button.totalprice.text='0'
 	return market.mainMenu()
 end
 --====================================================================================
@@ -297,15 +296,15 @@ market.inputNumber=function(n)
 		end
 	end
 	market.button.number.text = market.number..' '
-	market.button.number.xs = #market.itemlist[market.inumList[market.selectedLine]].display_name+4
+	market.button.number.xs = #market.itemlist[market.select].display_name+4
 	market.button.number.tx =
-	(#market.itemlist[market.inumList[market.selectedLine]].display_name+4)/2-#market.button.number.text/2
+	(#market.itemlist[market.select].display_name+4)/2-#market.button.number.text/2
 	local items= tonumber(market.number) or 0
-	local count= tonumber(market.itemlist[market.inumList[market.selectedLine]].sell_price) or 0
+	local count= tonumber(market.itemlist[market.select].sell_price) or 0
 	market.button.totalprice.text = tostring((items*count))..'   '
-	market.button.totalprice.xs = #market.itemlist[market.inumList[market.selectedLine]].display_name+4
+	market.button.totalprice.xs = #market.itemlist[market.select].display_name+4
 	market.button.totalprice.tx = 
-	(#market.itemlist[market.inumList[market.selectedLine]].display_name+4)/2-#market.button.totalprice.text/2
+	(#market.itemlist[market.select].display_name+4)/2-#market.button.totalprice.text/2
 	if market.mode == 'trade' then return market.place({'number','totalprice'}) end
 	return market.place({'number'})
 end
@@ -314,15 +313,15 @@ end
 --осуществляет вызов продажи либо продаёт изымая нал/баланс
 market.acceptBuy=function()
 	--узнаём суммарную платёжеспособность покупателя
-	local player_money= tonumber(market.player.cash)*10 + tonumber(market.player.balance)
+	local player_money= tonumber(market.player.cash) + tonumber(market.player.balance)
 	if player_money >= tonumber(market.button.totalprice.text) then
+		market.screen={'acceptbuy','buyCancel','cancel'}--table.insert(market.screen,'acceptbuy')
 		market.place({'acceptbuy'})
-		table.insert(market.screen,'acceptbuy')
 	end
 end
 --на основе объёма покупки производим действия с балансом
 market.getNewBalance=function()
-	local totalprice = tonumber(market.button.totalprice.text)
+	local totalprice = tonumber(market.button.totalprice.text) or 0
 	local balance = tonumber(market.player.balance)
 	if balance > 0 then
 		--если баланс не ниже суммы покупки
@@ -331,14 +330,14 @@ market.getNewBalance=function()
 				market.balanceOP=totalprice
 			else --баланс ниже суммы покупки, но не 0
 				--число монет к изъятию
-				market.substract = math.floor((totalprice-balance)/10)+1
+				market.substract = math.floor(totalprice-balance)+1
 				--сумма вычета с баланса
-				market.balanceOP = totalprice-market.substract*10
+				market.balanceOP = totalprice-market.substract
 		end
 	else--если баланс 0, то он не может стать меньше!
-		market.substract = math.floor(totalprice/10)+1
+		market.substract = math.floor(totalprice)+1
 		--для автозачисления сдачи на баланс
-		market.balanceOP = totalprice-market.substract*10
+		market.balanceOP = totalprice-market.substract
 	end
 	local msg = {name=market.player.name,op='buy',number=market.msgnum,value=market.balanceOP}
 	return market.serverPost(msg)
@@ -353,10 +352,12 @@ market.finalizeBuy=function()
 	--пушим в сундук монеты = оплата покупки
 	market.chest.fromInvToInv(pim,market.money,price,'pushItem')
 
-	local item_raw_name=market.inumList[market.selectedLine]--рав-имя предмета
-	local count = tonumber(market.number)
+	local item_raw_name=market.select--рав-имя предмета
+  local damage=market.itemlist[item_raw_name].damage
+  local count = 0
+  if tonumber(market.number) then count = tonumber(market.number) end
 	--пуллим из сундука = выдача товара
-	market[market.workmode].fromInvToInv(market.chestShop,item_raw_name,count,'pullItem',price)
+	market[market.workmode].fromInvToInv(market.chestShop,item_raw_name,count,'pullItem',price,damage)
 
 	market.itemlist[item_raw_name].qty=market.itemlist[item_raw_name].qty - count
 	return market.inShopMenu()
@@ -364,13 +365,13 @@ end
 
 --завершает сессию установки цены овнером
 market.setPrice = function()
-	market.itemlist[market.inumList[market.selectedLine]].sell_price = market.number
+	market.itemlist[market.select].sell_price = market.number
 	market.save_toFile(market.itemlist)
 	return market.inShopMenu()
 end
 
-market.search = function()
---market.place({'searchInput'})
+market.find = function()
+--market.place({'findInput'})
 --local name = market.inputString()
 
 return true
@@ -422,13 +423,14 @@ end
 --device - определяет проверяемый инвентарь
 --передаёт выбранный предмет itemid в количестве count из целевого в назначенный инвентарь
 --параметр передачи задаётся агр. 'op'=itemPull or itemPush
-function market.chest.fromInvToInv(device,raw_name,count, op)
+function market.chest.fromInvToInv(device,raw_name,count, op,damage)
 	local c=count
 	local legalSlots={}
 	local slots= device.getInventorySize()
 	if slots == 40 then slots=36 end
 	for slot=1,slots do
-		if device.getStackInSlot(slot) and raw_name == device.getStackInSlot(slot).raw_name
+		if device.getStackInSlot(slot) and raw_name == device.getStackInSlot(slot).raw_name 
+      and damage == device.getStackInSlot(slot).damage
 			then table.insert(legalSlots, slot)
 		end
 	end
@@ -456,14 +458,13 @@ function market.buyCancel(price)
 end
 
 --!!!эта функция только выдаёт предметы!!!
-function market.me.fromInvToInv(_,raw_name,count, _, price)
-	local c=count
-	local item=market.me.getItemDetail(raw_name)
+function market.me.fromInvToInv(_,raw_name,count, _, price,damage)
+  local c=count 
+	local item=market.me.getItemDetail(raw_name,damage)
 	if not item or item.size < count then --предметы кончились. отмена покупки
 		return market.buyCancel(price)
 	end
-
-	local fp={id=item.name,raw_name=item.label}
+	local fp={id=item.name,raw_name=item.label,dmg=item.damage}
 	while c > 0 do
 		if c > item.maxSize then
 			c=c-item.maxSize
@@ -475,11 +476,12 @@ function market.me.fromInvToInv(_,raw_name,count, _, price)
 	end
 	return true
 end
-function market.me.getItemDetail(raw_name)
+--поиск требуемого предмета в ме хранилище
+function market.me.getItemDetail(raw_name,damage)
 	local allItems=me.getItemsInNetwork()
 	local loop=#allItems
 	for n=1,loop do 
-		if raw_name == allItems[n].label then
+		if raw_name == allItems[n].name and damage==allItems[n].damage then
 			local item = allItems[n]
 			allItems[n] = nil
 			loop=nil
@@ -498,18 +500,18 @@ function market.findCash()
 end
 --=============================================================
 --displayet items availabled for trading
---создание экрана со списком предметов
+--создание экрана доступных к покупке предметов
 function market.showMeYourCandyesBaby(itemlist,inumList)
-	local y=2
 	local pos=market.shopLine
 	local total=#inumList
 	local qty=0
-	local lot={}
+	market.lot={}
+  local y=2
 	--поиск предметов с к-вом больше чем 1
 	while pos <= total do
 		local item=inumList[pos]
-		if tonumber(itemlist[item].qty) > 0 then
-			lot[y]=pos
+		if itemlist[item] and tonumber(itemlist[item].qty) > 0 then
+			market.lot[y]=pos
 			y=y+1
 		end
 		pos=pos+1
@@ -519,29 +521,33 @@ function market.showMeYourCandyesBaby(itemlist,inumList)
 	gpu.setActiveBuffer(zero)
 	gpu.setBackground(0x111111)
 	gpu.setForeground(color.blackLime)
-	gpu.fill(21,2,42,20,' ')
-	gpu.fill(64,2,5,20,' ')
-	gpu.fill(72,2,5,20,' ')
+	gpu.fill(21,2,42,21,' ')
+	gpu.fill(64,2,5,21,' ')
+	gpu.fill(72,2,5,21,' ')
 
 	y=2
 	while y < 23 do
-		local item=inumList[lot[y]]
+		local item=inumList[market.lot[y]]
+    if itemlist[item] then
 		qty=tostring(math.floor(tonumber(itemlist[item].qty)))
 		gpu.set(21,y,itemlist[item].display_name)
 		gpu.set(64,y,qty)
 		gpu.set(72,y,tostring(itemlist[item].sell_price))
+    end
 		y=y+2
 	end
 
 	gpu.setBackground(0x252525)
 	y=3
 	while y < 23 do
-		local item=inumList[lot[y]]
+		local item=inumList[market.lot[y]]
+    if itemlist[item] then
 		qty=tostring(math.floor(tonumber(itemlist[item].qty)))
 		gpu.set(21,y,"                                                       ")
 		gpu.set(21,y,itemlist[item].display_name)
 		gpu.set(64,y,qty)
 		gpu.set(72,y,tostring(itemlist[item].sell_price))
+    end
 		y=y+2
 	end
 
@@ -572,11 +578,12 @@ market.inShopMenu=function()
 	market.isPlayerInventoryFull()
 	--обновляем список товаров в магазине
 	market.itemListReplace()
-	--убираем из списка то, что не хотим показывать в списке товаров
+	--убираем из списка то, что не хотим показывать в списке товаров. Это либо нпц мани, либо аналогичный предмет
 	for n in pairs (market.inumList) do
 		if market.itemlist[market.inumList[n]].display_name=='gt.blockmetal4.12.name' then table.remove(market.inumList, n) end
  		if market.itemlist[market.inumList[n]].display_name=='Money' then table.remove(market.inumList, n) end
-  	end
+    if market.itemlist[market.inumList[n]].qty < 2 then table.remove(market.inumList, n) end
+  end
 	market.number=''
 	market.button.number.text=''
 	
@@ -586,9 +593,9 @@ market.inShopMenu=function()
 	market.button.balance.text=tostring(market.player.balance)
 	market.button.totalprice.text='0'
 	market.button.totalitems.text=#market.inumList..' type of items available'
-	market.screen={'status','shopUp','shopDown','shopFillRight','cancel','search'}
+	market.screen={'status','shopUp','shopDown','shopFillRight','cancel','find'}
 	market.replace()
-	market.place({'shopVert','shopTopRight','mode','ratio','totalitems','balancename','balance','cash','cashname','player'})
+	market.place({'shopVert','shopTopRight','mode','totalitems','balancename','balance','cash','cashname','player'})
 	return market.showMeYourCandyesBaby(market.itemlist,market.inumList)
 end
 --если инвентарь игрока полон
@@ -657,7 +664,7 @@ function market.pimByeBye()
 	market.player={}
 	market.inventory={}
 	market.screen={}
-	
+	market.shopLine=1
 	return market.screenInit()
 end
 --=============================================================
@@ -689,6 +696,7 @@ function market.merge()
 		else
 			if not market.itemlist[id] then
 				market.itemlist[id]={}
+        market.itemlist[id].damage = market.chestList[id].damage
 				market.itemlist[id].sell_price = '9999'
 				market.itemlist[id].buy_price = '0'	
 				--уменьшает к-во указанное в таблице на 1 относительно фактического к-ва предметов
@@ -738,9 +746,10 @@ end
 function market.me.setInventoryList(inventory,item,n)
   local id=''
 	if item and not inventory[item.label] then
-		id=item.label
+		id=item.name
 		inventory[id]={}
 		inventory[id].display_name=item.label
+    inventory[id].damage=item.damage
 		inventory[id].sell_price='9999'
 		inventory[id].buy_price='0'
 		inventory[id].name=item.name
@@ -763,6 +772,7 @@ function market.chest.setInventoryList(inventory,item,n)
 		id=item.raw_name
 		inventory[id]={}
 		inventory[id].display_name=item.display_name
+    inventory[id].damage=item.damage
 		inventory[id].sell_price=item.sell_price
 		inventory[id].buy_price=item.buy_price
 		inventory[id].name=item.name
@@ -784,8 +794,9 @@ function market.load_fromFile()
 	if not fs.exists('home/db.market') then
 		local db=io.open('db.market','w')
 		db:write('0'..'\n')
+    db:close()
 		itemlist.size=0
-	else
+	end
 		local db=io.open('db.market','r')
 		local size=db:read('*line')
 		if tonumber(size) then
@@ -794,12 +805,12 @@ function market.load_fromFile()
 				local id=tostring(db:read('*line'))
 				itemlist[id]={}
 				itemlist[id].display_name=tostring(db:read('*line'))
+        itemlist[id].damage=tonumber(db:read('*line'))
 				itemlist[id].sell_price=tonumber(db:read('*line'))
 				itemlist[id].buy_price=tonumber(db:read('*line'))
 			end
 		end
 		db:close()
-	end
 	return itemlist
 end
 
@@ -813,6 +824,7 @@ function market.save_toFile(list)
 	for id in pairs(itemlist)do
 		db:write(tostring(id)..'\n')
 		db:write(tostring(itemlist[id].display_name)..'\n')
+    db:write(tostring(itemlist[id].damage)..'\n')
 		db:write(tostring(itemlist[id].sell_price)..'\n')
 		db:write(tostring(itemlist[id].buy_price)..'\n')
 	end
@@ -824,6 +836,7 @@ end
 --замена кнопок экрана: вызов очистки и прорисовки
 function market.replace()
 	market.clear(0x111111)
+  
 	return market.place(market.screen)
 end
 
@@ -934,7 +947,7 @@ end
 function market.eula()
 	market.clear()
 	market.button.eula14.text='пишите владельцу '..market.owner[1].name
-	market.place({'eula1','eula2','eula3','eula4','eula5','eula6','eula7','eula8','eula9','eula10','eula12','eula13','eula14'})
+	market.place({'eula1','eula2','eula3','eula4','eula5','eula6','eula7','eula9','eula10','eula12','eula13','eula14'})
 	market.screen={'eula11'}
 	return market.place(market.screen)
 end
