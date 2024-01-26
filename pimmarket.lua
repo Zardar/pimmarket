@@ -883,7 +883,7 @@ market.serverResponse=function(e)
 
 	local msg,address = e[6],e[3]
 	--address - адрес отправителя
-	msg=serialization.unserialize(msg)
+	msg=serialization.unserialize(msg) or ''
 	--а нам ли сообщение?
 	if msg == 'name' or not msg.sender then return true 
 	end
