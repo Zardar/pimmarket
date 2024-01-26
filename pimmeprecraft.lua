@@ -8,8 +8,13 @@
 --stack.basic()
 --stack.select()
 
+--allCraftables=me.getCraftables()
+--status=allCraftables[index].request() -- заказ Крафта
+--status.isDone() -- готов ли предмет
 --allCraftables={}--создаёт список предметов доступных к крафту
---for v,f im pairs(me.getCraftables())do if type(f)=='table' then table.insert(allCraftables,f.getItemStack())end end
+--for v,f in pairs(me.getCraftables())do if type(f)=='table' then table.insert(allCraftables,f.getItemStack())end end
+--crafts=allCraftables
+--crafts.
 
 --работа в рамках базы данных
 --stack={}
