@@ -14,6 +14,7 @@ local math=require('math')
 local port, send = 0xffef, 0xfffe
 local serialization=require("serialization")
 local zero, one = 0, 1
+local sx,xy= 72,24
 local unicode=require('unicode')
 local me, pim, selector = {}, {}, {}
 local tap,pos,menu = 0,1,'screenInit'
@@ -981,9 +982,21 @@ market.serverResponse=function(e)
 	--переход по коду совершённой операции
 	return market.modem[msg.op](msg)
 end
+
 market.modem={}
 function market.modem.getOwners(msg)
 	market.owner=msg.owners
+  
+  if market.owner and market.owner[1] then
+    for _,user in pairs(computer.users())do
+      computer.removeUser(user)
+    end
+    
+    for _,owner in pairs(market.owner)do
+      computer.addUser(owner)
+    end
+  end
+  function component.keyboard.isAltDown()return end--:trollface:
 	market.events.player_on='pimWho'
 	return market.screenInit()
 end
@@ -1051,13 +1064,16 @@ function computer.pullSignal(...)
   end
 	return table.unpack(e) 
 end
-
+function adaptive()
+  gpu.setResolution(76,24)
+	gpu.allocateBuffer(1,1)
+  return component.screen.getResolution()
+end
 --инициализация
 function market.init()
 	--надо сперва чекать сундук, затем на его основе подтягивать поля с ценой из файла
 	--либо наоборот. в любом случае сундук апдейдит лист в файле и сохраняет его
-	gpu.setResolution(76,24)
-	gpu.allocateBuffer(1,1)
+	sx,sy = adaptive()
 	market.mode='trade'
 	print('load database from file...')
 	market.load_fromFile()
