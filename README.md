@@ -1,4 +1,4 @@
-# Pimmarket, what is it?:
+# About PimMarket:
 in-game item shop based on pim from openperipherals addon for opencomputers mod in minecraft space.
 # Requirements:
 Opencomputers
