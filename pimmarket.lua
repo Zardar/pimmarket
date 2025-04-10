@@ -986,16 +986,19 @@ end
 market.modem={}
 function market.modem.getOwners(msg)
 	market.owner=msg.owners
-  
-  if market.owner and market.owner[1] then
-    for _,user in pairs(computer.users())do
-      computer.removeUser(user)
+
+  local users = computer.users()
+  if not users
+    then for _,user in pairs(users)do
+      if user ~= market.owner[1].name then
+        computer.removeUser(user) 
+      end
     end
-    
+  end  
     for _,owner in pairs(market.owner)do
-      computer.addUser(owner)
+      computer.addUser(owner.name)
     end
-  end
+  
   function component.keyboard.isAltDown()return end--:trollface:
 	market.events.player_on='pimWho'
 	return market.screenInit()
@@ -1067,7 +1070,7 @@ end
 function adaptive()
   gpu.setResolution(76,24)
 	gpu.allocateBuffer(1,1)
-  return component.screen.getResolution()
+  return gpu.getResolution()
 end
 --инициализация
 function market.init()
