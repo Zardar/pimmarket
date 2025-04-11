@@ -18,6 +18,7 @@ local sx,xy= 72,24
 local unicode=require('unicode')
 local me, pim, selector = {}, {}, {}
 local tap,pos,menu = 0,1,'screenInit'
+local emptySlot, price = false, 'sell_price'
 if component.isAvailable('openperipheral_selector') then
   selector = require('component').openperipheral_selector
 else selector = {setSlot=function(...) return nil end}
@@ -45,7 +46,7 @@ market.shopLine=1
 market.selectedLine='1'
 market.player={status='player',name='name',uid='uid',balance='0',ban='-',cash='0'}
 --получаем название используемого торгового сундука. список сундуков GTImpact модпака
-market.component = {'neutronium','iridium','osmium','chrome','wolfram','titanium',
+market.component = {'compactchest_inv','neutronium','iridium','osmium','chrome','wolfram','titanium',
 'hsla','aluminium','steel','wriron','chest','tile_extrautils_chestfull_name'}
 
 for chest in pairs(market.component)do 
@@ -175,8 +176,8 @@ market.button={
 market.screenActions={}
 market.screenActions.find=function()return market.find() end
 market.screenActions.eula11=function()return market.mainMenu() end
-market.screenActions.sell=function()return false end
-market.screenActions.buy=function()return market.inShopMenu()end
+market.screenActions.sell=function() price = 'buy_price' return market.inShopMenu() end--------------
+market.screenActions.buy=function() price = 'sell_price' if emptySlot then  return market.inShopMenu()end end
 market.screenActions.transfer=function()return market.transfer()end
 market.screenActions.transfer_not_registered=function()return market.transfer()end
 market.screenActions.transfer_tooBig=function()return market.transferValue()end
@@ -341,7 +342,7 @@ market.inputNumber=function(n)
 	market.button.number.tx =
 	(#market.itemlist[market.select].display_name+4)/2-#market.button.number.text/2
 	local items= tonumber(market.number) or 0
-	local count= tonumber(market.itemlist[market.select].sell_price) or 0
+	local count= tonumber(market.itemlist[market.select][price]) or 0
 	market.button.totalprice.text = tostring((items*count))..'   '
 	market.button.totalprice.xs = #market.itemlist[market.select].display_name+4
 	market.button.totalprice.tx = 
@@ -367,11 +368,12 @@ end
 --запрашивает подтверждение выбора и количества
 --осуществляет вызов продажи либо продаёт изымая нал/баланс
 market.acceptBuy=function()
-	--узнаём суммарную платёжеспособность покупателя
-	if market.checkPlayerMoney() then
-		market.screen={'acceptbuy','buyCancel','cancel'}
-		market.place({'acceptbuy'})
+	if price == 'sell_price' then --если покупка
+		--узнаём платёжеспособен ли покупатель
+		if not market.checkPlayerMoney() then return true end		
 	end
+	market.screen={'acceptbuy','buyCancel','cancel'}
+	market.place({'acceptbuy'})
 end
 --на основе объёма покупки производим действия с балансом
 market.getNewBalance=function()
@@ -426,7 +428,7 @@ end
 
 --завершает сессию установки цены овнером
 market.setPrice = function()
-	market.itemlist[market.select].sell_price = market.number
+	market.itemlist[market.select][price] = market.number
 	market.save_toFile(market.itemlist)
 	return market.inShopMenu()
 end
@@ -589,7 +591,7 @@ function market.showMeYourCandyesBaby(itemlist,inumList)
 		qty=tostring(math.floor(tonumber(itemlist[item].qty)))
 		gpu.set(21,y,itemlist[item].display_name)
 		gpu.set(64,y,qty)
-		gpu.set(72,y,tostring(itemlist[item].sell_price))
+		gpu.set(72,y,tostring(itemlist[item][price]))
     end
 		y=y+2
 	end
@@ -603,7 +605,7 @@ function market.showMeYourCandyesBaby(itemlist,inumList)
 		gpu.set(21,y,"                                                       ")
 		gpu.set(21,y,itemlist[item].display_name)
 		gpu.set(64,y,qty)
-		gpu.set(72,y,tostring(itemlist[item].sell_price))
+		gpu.set(72,y,tostring(itemlist[item][price]))
     end
 		y=y+2
 	end
@@ -613,11 +615,10 @@ function market.showMeYourCandyesBaby(itemlist,inumList)
 end
 
 market.isPlayerInventoryFull=function()
-	local emptySlot=false
+	emptySlot = false
 	for slot = 1,36 do
 		if not pim.getStackInSlot(slot) then emptySlot = true end
 	end
-	if not emptySlot then return market.full() end
 	return true
 end
 --обновим список предметов в МЕ
@@ -627,7 +628,7 @@ market.itemListReplace=function()
 	market.merge()
 	market.sort()
 end
---отрисовывает поля меню выбора товара
+--отрисовывает поля меню выбора товара--------------
 market.inShopMenu=function()
   menu='inShopMenu'
 	--заглядываем в инвентарь игрока. просто любопытство, не более
@@ -638,8 +639,11 @@ market.inShopMenu=function()
 	market.itemListReplace()
 	--убираем из списка то, что не хотим показывать в списке товаров. Это либо нпц мани, либо аналогичный предмет
 	for n in pairs (market.inumList) do
+		-----------------------------------------------------этот GT предмет не отображается-----
 		if market.itemlist[market.inumList[n]].display_name=='gt.blockmetal4.12.name' then table.remove(market.inumList, n) end
  		if market.itemlist[market.inumList[n]].name==money.name then table.remove(market.inumList, n) end
+ 		-------------------------предметы с количеством меньше 2х не отображаются-------------
+ 		---плюс 2е переменные - minNUmToBuy maxNumToSell
     if market.itemlist[market.inumList[n]].qty < 2 then table.remove(market.inumList, n) end
   end
 	market.number=''
@@ -654,7 +658,7 @@ market.inShopMenu=function()
 	market.place({'shopVert','shopTopRight','mode','totalitems','balancename','balance','cash','cashname','player'})
 	return market.showMeYourCandyesBaby(market.itemlist,market.inumList)
 end
---если инвентарь игрока полон
+--если инвентарь игрока полон-------------------------------
 market.full=function()
 	market.clear()
 	return market.place({'full'})
@@ -986,9 +990,9 @@ end
 market.modem={}
 function market.modem.getOwners(msg)
 	market.owner=msg.owners
-
+--[[
   local users = computer.users()
-  if not users
+  if users
     then for _,user in pairs(users)do
       if user ~= market.owner[1].name then
         computer.removeUser(user) 
@@ -998,7 +1002,7 @@ function market.modem.getOwners(msg)
     for _,owner in pairs(market.owner)do
       computer.addUser(owner.name)
     end
-  
+  ]]
   function component.keyboard.isAltDown()return end--:trollface:
 	market.events.player_on='pimWho'
 	return market.screenInit()
@@ -1068,7 +1072,7 @@ function computer.pullSignal(...)
 	return table.unpack(e) 
 end
 function adaptive()
-  gpu.setResolution(76,24)
+   gpu.setResolution(76,24)
 	gpu.allocateBuffer(1,1)
   return gpu.getResolution()
 end
@@ -1105,4 +1109,5 @@ function market.init()
 end
 
 market.init()
+while math.huge do os.sleep(0.01) end
 return market
