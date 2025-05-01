@@ -13,12 +13,14 @@ local computer=require('computer')
 local pullSignal=computer.pullSignal	
 local gpu = require('component').gpu
 
-
 gpu.setBackground(0x092309)
 gpu.setForeground(0x58f029)
 gpu.setResolution(144,30)
-local _, y = gpu.getResolution()
-local lastActions = {} for f= 1,y*3 do lastActions[f] = '' end
+local _, ys = gpu.getResolution()
+local lastActions = {}
+for f= 1,ys*3 do 
+  lastActions[f] = '|                             |' 
+end
 modem.open(port)
 modem.setWakeMessage("{name=")
 
@@ -129,13 +131,19 @@ function pimserver.lastActions(msg)
   while #text < 29 do text = text .. ' ' end text = text .. ' |'
   table.remove(lastActions,#lastActions)
   table.insert(lastActions,1,text)
-  
+  return pimserver.drawActions()
+ end
+ 
+ function pimserver.drawActions()
   local ink = gpu.getForeground()
   gpu.setForeground(0x727272)
-  for y = 1, 28 do
+  for y = 1, ys do
     text = lastActions[y] .. lastActions[y+24] .. lastActions[y+48]
     gpu.set(48,y,text)
   end
+  
+  gpu.set(2,ys,string.format('RAM: ' .. computer.totalMemory()-computer.freeMemory() .. '/' ..
+      computer.totalMemory()))
   gpu.setForeground(ink)
   
   return true
@@ -330,6 +338,7 @@ function pimserver.init()
 		pimserver.WaitToNewOwner()
 	end
 	pimserver.place()
+  pimserver.drawActions()
 	return true
 end
 
@@ -340,6 +349,7 @@ function wakeUp()
 end
 
 event.timer(15,wakeUp,math.huge)
+
 pimserver.init()
 print('Сервер поднят.')
 return pimserver
