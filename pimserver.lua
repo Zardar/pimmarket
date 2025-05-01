@@ -20,7 +20,7 @@ gpu.setResolution(144,30)
 local _, y = gpu.getResolution()
 local lastActions = {} for f= 1,y*3 do lastActions[f] = '' end
 modem.open(port)
-modem.setWakeMessage="{name="
+modem.setWakeMessage("{name=")
 
 computer.pullSignal=function(...)
 	local e={pullSignal(...)}

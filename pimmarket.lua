@@ -398,6 +398,7 @@ market.acceptBuyFromPlayer=function()
 end
 
 
+
 --на основе объёма покупки производим действия с балансом
 --эта функция нам важна при покупке игроком товара
 --но как быть если посетитель сам продаёт товар
@@ -430,8 +431,7 @@ market.getNewBalance=function()
 	local msg = {name=market.player.name,op='buy',number=market.msgnum,value=market.balanceOP}
 	return market.serverPost(msg)			
 end
-
---
+--================================
 market.playerSell = function()
    market.clear() -- Очистка интерфейса
 
@@ -465,7 +465,7 @@ market.playerSell = function()
     
     return market.inShopMenu()
   end
-  
+-----------------------------------------
   -- 4. Проверка наличия предметов у игрока
   local playerItemCount = 0
   market.inventory = market.chest.get_inventoryitemlist(pim)
@@ -479,7 +479,12 @@ market.playerSell = function()
     os.sleep(2)
     return market.inShopMenu()
   end
-  
+----------------------------------------
+  -- 5. Логирование параметров для отладки
+  --print(string.format("Продажа: %s x%d (damage: %d) за %d монет", 
+  --  id, count, damage, price * count))
+
+  -- 6. Удаление предметов из инвентаря игрока (device,id,count, op)
   local success, reason = market.chest.fromInvToInv(
     pim,        -- Инвентарь игрока
     id,         -- ID предмета формата "minecraft:diamond&&0"
@@ -494,12 +499,13 @@ market.playerSell = function()
     return market.inShopMenu()
   end
 
+
   -- 7. Выдача денег игроку 
   local totalMoney = price * count
   local msg = {name=market.player.name,op='sell',number=market.msgnum,value=totalMoney}
 	return market.serverPost(msg)
 end
-
+--==================================================--
 --завершает продажу. забирает валюту. выдаёт предметы
 market.finalizeBuy=function()
 	market.clear()
@@ -519,14 +525,46 @@ market.finalizeBuy=function()
 	return market.inShopMenu()
 end
 
+--==================================================--
 -- Основная функция завершения продажи
 market.finalizeSell = function()
+ 
+
+  --[[local moneySuccess = market[market.workmode].fromInvToInv(
+    market.chestShop, -- Инвентарь магазина
+    market.money,     -- ID валюты
+    totalMoney,       -- Сумма
+    'pullItem'        -- Операция (из магазина игроку)
+  )]]
+            --(_,id,count, _, price,damage)
+  --[[local moneySuccess = market[market.workmode].fromInvToInv(
+  	0,market.money,totalMoney,0,price,damage)
+
+  if not moneySuccess then
+    -- Откат операции: возвращаем предметы
+    market.chest.fromInvToInv(
+      market.chestShop,
+      id,
+      count,
+      'pullItem',
+      damage
+    )
+    
+    print("ОШИБКА: Не удалось выдать деньги")os.sleep(2)
+    market.replace({'error_giving_money'})
+    
+    return market.inShopMenu()
+  end]]
   -- 8. Обновление данных магазина
   
   local count = tonumber(market.number) or 0
   market.itemData.qty = (market.itemData.qty or 0) + count
   market.inventory = market.chest.get_inventoryitemlist(pim)
   market.updateMoney()
+  -- 9. Успешное завершение
+  --print("Продажа успешно завершена!")
+  --market.replace({'transaction_success'})
+  --os.sleep(1)
   return market.inShopMenu()
 end
 
