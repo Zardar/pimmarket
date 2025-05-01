@@ -431,34 +431,9 @@ market.getNewBalance=function()
 	local msg = {name=market.player.name,op='buy',number=market.msgnum,value=market.balanceOP}
 	return market.serverPost(msg)			
 end
-
+--================================
 market.playerSell = function()
-	return market.finalizeSell()
-end
---==================================================--
---завершает продажу. забирает валюту. выдаёт предметы
-market.finalizeBuy=function()
-	market.clear()
-	--число монет к изъятию
-	local price = market.substract
-	--пушим в сундук монеты = оплата покупки
-	market.chest.fromInvToInv(pim,market.money,price,'pushItem')
-
-	local id=market.select--рав-имя предмета
-  local damage=market.itemlist[id].damage
-  local count = 0
-  if tonumber(market.number) then count = tonumber(market.number) end
-	--пуллим из сундука = выдача товара
-	market[market.workmode].fromInvToInv(market.chestShop,id,count,'pullItem',price,damage)
-
-	market.itemlist[id].qty=market.itemlist[id].qty - count
-	return market.inShopMenu()
-end
-
---==================================================--
--- Основная функция завершения продажи
-market.finalizeSell = function()
-  market.clear() -- Очистка интерфейса
+   market.clear() -- Очистка интерфейса
 
   -- 1. Проверка выбранного предмета
   local id = market.select
@@ -470,16 +445,16 @@ market.finalizeSell = function()
   end
 
   -- 2. Получение параметров предмета
-  local itemData = market.itemlist[id]
-  if not itemData then
+  market.itemData = market.itemlist[id]
+  if not market.itemData then
     print("ОШИБКА: Нет данных о предмете в itemlist")os.sleep(2)
     market.replace({'error_item_not_found'})
     
     return market.inShopMenu()
   end
 
-  local damage = itemData.damage or '0'
-  local price = itemData.buy_price or 0 -- Используем цену скупки
+  local damage = market.itemData.damage or '0'
+  local price = market.itemData.buy_price or 0 -- Используем цену скупки
 
   -- 3. Обработка количества
   local count = tonumber(market.number)
@@ -527,6 +502,34 @@ market.finalizeSell = function()
 
   -- 7. Выдача денег игроку 
   local totalMoney = price * count
+  local msg = {name=market.player.name,op='sell',number=market.msgnum,value=totalMoney}
+	return market.serverPost(msg)
+end
+--==================================================--
+--завершает продажу. забирает валюту. выдаёт предметы
+market.finalizeBuy=function()
+	market.clear()
+	--число монет к изъятию
+	local price = market.substract
+	--пушим в сундук монеты = оплата покупки
+	market.chest.fromInvToInv(pim,market.money,price,'pushItem')
+
+	local id=market.select--рав-имя предмета
+  local damage=market.itemlist[id].damage
+  local count = 0
+  if tonumber(market.number) then count = tonumber(market.number) end
+	--пуллим из сундука = выдача товара
+	market[market.workmode].fromInvToInv(market.chestShop,id,count,'pullItem',price,damage)
+
+	market.itemlist[id].qty=market.itemlist[id].qty - count
+	return market.inShopMenu()
+end
+
+--==================================================--
+-- Основная функция завершения продажи
+market.finalizeSell = function()
+ 
+
   --[[local moneySuccess = market[market.workmode].fromInvToInv(
     market.chestShop, -- Инвентарь магазина
     market.money,     -- ID валюты
@@ -534,7 +537,7 @@ market.finalizeSell = function()
     'pullItem'        -- Операция (из магазина игроку)
   )]]
             --(_,id,count, _, price,damage)
-  local moneySuccess = market[market.workmode].fromInvToInv(
+  --[[local moneySuccess = market[market.workmode].fromInvToInv(
   	0,market.money,totalMoney,0,price,damage)
 
   if not moneySuccess then
@@ -551,9 +554,11 @@ market.finalizeSell = function()
     market.replace({'error_giving_money'})
     
     return market.inShopMenu()
-  end
+  end]]
   -- 8. Обновление данных магазина
-  itemData.qty = (itemData.qty or 0) + count
+  
+  local count = tonumber(market.number) or 0
+  market.itemData.qty = (market.itemData.qty or 0) + count
   market.inventory = market.chest.get_inventoryitemlist(pim)
   market.updateMoney()
   -- 9. Успешное завершение
@@ -562,9 +567,6 @@ market.finalizeSell = function()
   --os.sleep(1)
   return market.inShopMenu()
 end
-
-
-
 
 
 --завершает сессию установки цены овнером
@@ -1108,7 +1110,7 @@ end
 
 market.linked=function() return 'server already linked' end
 
---пытаемся получить сообщение подтверждающее операцию
+--получили serverResponse. Уточняем детали
 market.serverResponse=function(e)
 
 	local msg,address = e[6],e[3]
