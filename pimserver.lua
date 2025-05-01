@@ -1,23 +1,27 @@
 --pimserver 1.1
 local pimserver={}
-pimserver.version='1.00'
-local db={}
-local owners={}
+pimserver.version='1.10'
+local db,owners,terminal,unregistered = {}, {}, {}, {}
 local event=require('event')
 local modem=require('component').modem
-local port = 0xfffe
-local send = 0xffef
+local port, send = 0xfffe, 0xffef
 local fs = require('filesystem')
 --local log={}
 local serialization = require('serialization')
-local terminal={}
-local unregistered={}
-local gpu = require('component').gpu
-modem.open(port)
-modem.setWakeMessage="{name="
 local player_on = false
 local computer=require('computer')
 local pullSignal=computer.pullSignal	
+local gpu = require('component').gpu
+
+
+gpu.setBackground(0x092309)
+gpu.setForeground(0x58f029)
+gpu.setResolution(144,30)
+local _, y = gpu.getResolution()
+local lastActions = {} for f= 1,y*3 do lastActions[f] = '' end
+modem.open(port)
+modem.setWakeMessage="{name="
+
 computer.pullSignal=function(...)
 	local e={pullSignal(...)}
 	if e[1]=='modem_message' then
@@ -40,8 +44,10 @@ function pimserver.modem(e) ---1type 2respondent 3sender 4port 5distance 6messag
 	--msg.name =name of player
 	--msg.op = enter|buy|sell|balanceIn|balanceOut
 	--msg.value = value of operation
+ 
 	local msg = serialization.unserialize(e[6])
   msg.sender = sender
+  pimserver.lastActions(msg)
   --регистрация терминалов
   if msg.name and msg.name=='pimmarket' then
   		return pimserver[msg.op](sender)
@@ -73,6 +79,7 @@ function pimserver.connect(sender)
 	table.insert(unregistered,sender)
 	return pimserver.place()
 end
+
 function pimserver.getOwners(sender)
 	local msg={sender=sender,number=1,name='pimmarket',balance=0,op='getOwners'}
 	msg.owners=owners
@@ -111,12 +118,31 @@ function pimserver.returnAccept(sender)
 	local msg={sender=sender,number=1,name='pimmarket',balance=0,op='connect'}
 	pimserver.post(msg)
 	return pimserver.place()
-	end
+end
 
+--вывод в правую часть монитора последних полученых событий магазинов
+function pimserver.lastActions(msg)
+  local data = msg
+  if data.op == 'enter' then data.value = '' end
+  if not data.value or not tonumber(data.value) then data.value = '' end
+  local text  = '| ' .. data.name .. ' ' .. data.op .. ' ' .. data.value .. ' '
+  while #text < 29 do text = text .. ' ' end text = text .. ' |'
+  table.remove(lastActions,#lastActions)
+  table.insert(lastActions,1,text)
+  
+  local ink = gpu.getForeground()
+  gpu.setForeground(0x727272)
+  for y = 1, 28 do
+    text = lastActions[y] .. lastActions[y+24] .. lastActions[y+48]
+    gpu.set(48,y,text)
+  end
+  gpu.setForeground(ink)
+  
+  return true
+end
+--вывод данных о терминалах
 function pimserver.place()
 	local x,y = gpu.getResolution()
-	gpu.setBackground(0x113311)
-	gpu.setForeground(0x58f029)
 	gpu.fill(1,1,x,y,' ')
 	gpu.set(1,1,'REG: step on PIM for register owner')
 	gpu.set(5,1,'Registered terminals:')
@@ -314,7 +340,6 @@ function wakeUp()
 end
 
 event.timer(15,wakeUp,math.huge)
-gpu.setResolution(76,24)
 pimserver.init()
 print('Сервер поднят.')
 return pimserver
