@@ -215,6 +215,10 @@ market.screenActions.shopDown=function() if market.itemlist.size-15 > market.sho
   
 market.screenActions.shopFillRight=function(_,y)--ловит выбор игроком предмета
 	market.selectedLine = y+market.shopLine-2
+  
+  local idx = market.lot[y]
+  if not idx then return end
+  
 	if market.selectedLine <= #market.inumList then
 	market.select=market.inumList[market.lot[y]]
   selector.setSlot(1,{id=market.itemlist[market.select].name,dmg=market.itemlist[market.select].damage})
@@ -724,6 +728,7 @@ end
 function market.showMeYourCandyesBaby(itemlist,inumList)--()--
   --local itemlist = market.itemlist
   --local inumList = market.inumList
+  local skipped_items = 0
   tap = 0
   selector.setSlot(1,nil)
 	local pos=market.shopLine
@@ -739,6 +744,7 @@ function market.showMeYourCandyesBaby(itemlist,inumList)--()--
     if filter ~= '' then 
       if not itemlist[item].display_name:lower():find(filter,1,true) then
         show = false
+        skipped_items = skipped_items + 1
       end
     end
     
