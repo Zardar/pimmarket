@@ -148,7 +148,7 @@ market.button={
 	
 	cancel={x=34,xs=10,y=24,ys=1,text='назад',tx=2,ty=0,bg=0x303030,fg=0x68f029},
 	find={x=48,xs=10,y=24,ys=1,text='поиск',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	findInput={x=60,xs=10,y=24,ys=1,text='Найти:',tx=2,ty=0,bg=0x303030,fg=0x68f029},
+	findInput={x=60,xs=10,y=24,ys=1,text=':',tx=2,ty=0,bg=0x303030,fg=0x68f029},
 
 	welcome={x=24,xs=32,y=12,ys=3,text='добро пожаловать в ПимМаркет',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	name={x=32,xs=24,y=8,ys=3,text='name',tx=2,ty=1,bg=0x303030,fg=0x68f029},
@@ -212,6 +212,7 @@ market.screenActions.shopUp=function() if market.shopLine > 15 then
 	market.shopLine=market.shopLine-15 end return market.showMeYourCandyesBaby(market.itemlist,market.inumList) end
 market.screenActions.shopDown=function() if market.itemlist.size-15 > market.shopLine then
 	market.shopLine=market.shopLine+15 end return market.showMeYourCandyesBaby(market.itemlist,market.inumList) end
+  
 market.screenActions.shopFillRight=function(_,y)--ловит выбор игроком предмета
 	market.selectedLine = y+market.shopLine-2
 	if market.selectedLine <= #market.inumList then
@@ -230,6 +231,7 @@ market.screenActions.shopFillRight=function(_,y)--ловит выбор игро
   tap = 0
 	market.button.select.text=market.itemlist[market.select].display_name
 	market.button.select.xs=#market.itemlist[market.select].display_name+4
+  if market.mode == 'find' then return market.trade(market.selectedLine) end
 	return market[market.mode](market.selectedLine)
 	end
 end
@@ -299,12 +301,25 @@ market.edit=function()
 end
 
 --меню владельца для наименования
-market.rename=function(line)
+market.rename=function()
 	market.clear(0x202020)
 	market.place({'select','newname'})
 	market.screen={}
 	market.itemlist[market.inumList[line]].display_name = market.inputString()
 	market.save_toFile(market.itemlist)
+	return market.inShopMenu()
+end
+
+
+--меню посетителя для поиска
+market.find = function()
+  market.screen={'status','shopUp','shopDown','shopFillRight','cancel','find'}
+  market.place({'findInput'})
+  local pmode = market.mode
+  market.mode = 'find'
+	market.key = market.inputString()
+  market.mode = pmode
+  market.button.findInput.text = market.key
 	return market.inShopMenu()
 end
 
@@ -321,10 +336,15 @@ market.inputString=function()
 			if ch == 8 then name=string.sub(name,1,#name-1) end
 			if ch==0 and scd==211 then name=string.sub(name,1,#name-1) end
 			if ch==13 then loop = false end
-		market.button.newname.text=name..' '
-		market.button.newname.xs=#name+4
-		market.place({'newname'})
-		end
+      market.button.newname.text=name..' '
+      market.button.newname.xs=#name+4
+      if market.mode ~= 'find' then market.place({'newname'})
+      else market.key = name market.button.findInput.text = market.key
+        market.showMeYourCandyesBaby(market.itemlist,market.inumList)
+        market.place({'findInput'})
+      end
+    end
+    
 	end
 	market.button.newname.text=''
 	market.button.newname.xs=2
@@ -576,12 +596,6 @@ market.setPrice = function()
 	return market.inShopMenu()
 end
 
-market.find = function()
---market.place({'findInput'})
---local name = market.inputString()
-
-return true
-end
 --проверка наличия аккаунта. 
 function market.isRegistered(bool)
 	market.clear(0x202020)
@@ -707,7 +721,9 @@ end
 --=============================================================
 --displayet items availabled for trading
 --отрисовывает доступные товары
-function market.showMeYourCandyesBaby(itemlist,inumList)
+function market.showMeYourCandyesBaby(itemlist,inumList)--()--
+  --local itemlist = market.itemlist
+  --local inumList = market.inumList
   tap = 0
   selector.setSlot(1,nil)
 	local pos=market.shopLine
@@ -715,10 +731,18 @@ function market.showMeYourCandyesBaby(itemlist,inumList)
 	local qty=0
 	market.lot={}
   local y=2
+  local filter =  market.key and tostring(market.key):lower() or ''
 	--поиск предметов с к-вом больше чем 1
 	while pos <= total do
 		local item=inumList[pos]
-		if itemlist[item] and tonumber(itemlist[item].qty) > 0 then
+    local show = true
+    if filter ~= '' then 
+      if not itemlist[item].display_name:lower():find(filter,1,true) then
+        show = false
+      end
+    end
+    
+		if itemlist[item] and tonumber(itemlist[item].qty) > 0 and show then
 			market.lot[y]=pos
 			y=y+1
 		end
@@ -856,6 +880,7 @@ function market.pimWho(e)
 	market.button.status.text=market.player.status
 	market.button.player.text=market.player.name
 	market.money = market.pimmoney
+  market.key = ''
 
 	--здороваемся
 	market.button.name.text=who
