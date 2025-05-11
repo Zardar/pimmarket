@@ -19,6 +19,7 @@ local unicode=require('unicode')
 local me, pim, selector = {}, {}, {}
 local tap,pos,menu = 0,1,'screenInit'
 local emptySlot, price = true, 'sell_price'
+local inpuStringFlag = false
 if component.isAvailable('openperipheral_selector') then
   selector = require('component').openperipheral_selector
 else selector = {setSlot=function(...) return nil end}
@@ -330,10 +331,10 @@ market.find = function()
 end
 
 market.inputString=function()
-	local loop = true
+inpuStringFlag = true
 	local name=''
 	--if market.mode ~= 'find' and market.player.status ~= 'owner' then return true end
-	while loop do
+	while inpuStringFlag do
 		local _,_,ch,scd = event.pull('key_down')
 		if ch then
 			if ch>30 then 
@@ -342,10 +343,11 @@ market.inputString=function()
 
 			if ch == 8 then name=string.sub(name,1,#name-1) end
 			if ch==0 and scd==211 then name=string.sub(name,1,#name-1) end
-			if ch==13 then loop = false end
+			if ch==13 then inpuStringFlag = false end
       market.button.newname.text=name..' '
       market.button.newname.xs=#name+4
-      if market.mode ~= 'find' and market.mode ~='trade' then market.place({'newname'})
+      if market.mode ~= 'find' and market.mode ~='trade' then 
+      	market.place({'newname'})
       else market.key = name market.button.findInput.text = market.key
         market.showMeYourCandyesBaby(market.itemlist,market.inumList)
         market.place({'findInput'})
@@ -355,6 +357,7 @@ market.inputString=function()
 	end
 	market.button.newname.text=''
 	market.button.newname.xs=2
+	inpuStringFlag = false
 	return name 
 end
 
@@ -904,17 +907,27 @@ end
 --очистка и создание экрана ожидания
 --сюда попадаем получая эвент player_off
 function market.pimByeBye()
-	market.key = nil
+	market.key = ''
 	market.events.touch = nil
 	market.events.player_off = nil
 	market.events.player_on = 'pimWho'
-	market.button.findInput.text=''
-	market.button.newname.text=''
+
+	--market.button.findInput.text=''
+	--market.button.newname.text=''
+
+      --market.place({'newname'})
+       -- market.place({'findInput'})
+      
+	--market.button.newname.text=''
+	--market.button.newname.xs=2
+	market.button.findInput.text = ''
+	inpuStringFlag = false
 	market.mode = 'trade'
 	market.button.mode.text='trade'
 	market.player = {}
 	market.inventory = {}
 	market.screen = {}
+	market.place({})
 	market.shopLine = 1
   selector.setSlot(1,nil)
 	return market.screenInit()
@@ -1265,7 +1278,7 @@ function computer.pullSignal(...)
 	return table.unpack(e) 
 end
 function adaptive()
-   gpu.setResolution(76,24)
+   gpu.setResolution(76,44)
 	--gpu.allocateBuffer(1,1)
   return gpu.getResolution()
 end
