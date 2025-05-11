@@ -6,6 +6,7 @@ market.version='1.10'
 local fs=require('filesystem')
 local component=require('component')
 local gpu=require('component').gpu
+keyboard = require('keyboard')
 local computer=require('computer')
 local pullSignal=computer.pullSignal
 local event=require('event')
@@ -115,7 +116,7 @@ market.button={
 	player={x=3,xs=10,y=1,ys=1,text='name',tx=1,ty=0,bg=0x303030,fg=0x68f029},
 	status={x=3,xs=10,y=2,ys=1,text='player',tx=1,ty=0,bg=0x303030,fg=0x68f029},
 	mode={x=3,xs=10,y=3,ys=1,text='trade',tx=1,ty=0,bg=0x303030,fg=0x68f029},
-	totalitems={x=1,xs=19,y=24,ys=1,text=tostring(#market.inumList)..'items',tx=1,ty=0,bg=0x303030,fg=0x68f029},
+	totalitems={x=1,xs=19,y=40,ys=1,text=tostring(#market.inumList)..'items',tx=1,ty=0,bg=0x303030,fg=0x68f029},
 	cashname={x=3,xs=10,y=5,ys=1,text='НПЦ монеты',tx=0,ty=0,bg=0x303030,fg=0x68f029},
 	cash={x=3,xs=10,y=6,ys=1,text='NPC money:',tx=0,ty=0,bg=0x303030,fg=0x68f029},
 	balancename={x=3,xs=10,y=7,ys=1,text='ПИМ-мани:',tx=0,ty=0,bg=0x303030,fg=0x68f029},
@@ -148,16 +149,16 @@ market.button={
 	acceptbuy={x=41,xs=26,y=16,ys=3,text='подтвердить',tx=7,ty=1,bg=0x303030,fg=0x68f029},
 	acceptSell={x=41,xs=26,y=16,ys=3,text='подтверждаю',tx=7,ty=1,bg=0x303030,fg=0x68f029},
 	
-	cancel={x=34,xs=10,y=24,ys=1,text='назад',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	find={x=48,xs=10,y=24,ys=1,text='поиск:',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	findInput={x=60,xs=10,y=24,ys=1,text='',tx=2,ty=0,bg=0x303030,fg=0x28f029},
+	cancel={x=34,xs=10,y=40,ys=1,text='назад',tx=2,ty=0,bg=0x303030,fg=0x68f029},
+	find={x=48,xs=10,y=40,ys=1,text='поиск:',tx=2,ty=0,bg=0x303030,fg=0x68f029},
+	findInput={x=60,xs=10,y=40,ys=1,text='',tx=2,ty=0,bg=0x303030,fg=0x28f029},
 
 	welcome={x=24,xs=32,y=12,ys=3,text='добро пожаловать в ПимМаркет',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	name={x=32,xs=24,y=8,ys=3,text='name',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	wait={x=27,xs=24,y=16,ys=3,text='ждём ответ сервера...',tx=2,ty=1,bg=0x303030,fg=0x68f029},
-	entrance={x=3,xs=72,y=2,ys=22,text='',tx=1,ty=1,bg=0x141414,fg=color.blackLime},
-	pim1={x=26,xs=24,y=6,ys=12,text='',tx=1,ty=1,bg=0x404040,fg=0x68f029},
-	pim2={x=28,xs=20,y=7,ys=10,text='Встаньте на PIM',tx=2,ty=4,bg=0x202020,fg=0x68f029},
+	entrance={x=3,xs=72,y=2,ys=38,text='',tx=1,ty=1,bg=0x141414,fg=color.blackLime},
+	pim1={x=26,xs=24,y=14,ys=12,text='',tx=1,ty=1,bg=0x404040,fg=0x68f029},
+	pim2={x=28,xs=20,y=15,ys=10,text='Встаньте на PIM',tx=2,ty=4,bg=0x202020,fg=0x68f029},
 	buy={x=30,xs=16,y=8,ys=3,text='Купить',tx=5,ty=1,bg=0x303030,fg=0x68f029},
 	sell={x=30,xs=16,y=12,ys=3,text='Продать',tx=5,ty=1,bg=0x303030,fg=0x68f029},
 	full={x=16,xs=39,y=10,ys=3,text='Ваш инвентарь полон. Доступ закрыт.',tx=2,ty=1,bg=0x303030,fg=0x68f029},
@@ -174,7 +175,7 @@ market.button={
 	shopUp={x=3,xs=10,y=12,ys=5,text='ВВЕРХ',tx=2,ty=2,bg=0x303030,fg=0x68f029},
 	shopDown={x=3,xs=10,y=18,ys=5,text='ВНИЗ',tx=3,ty=2,bg=0x303030,fg=0x68f029},
 	shopTopRight={x=21,xs=55,y=1,ys=1,text='Available items                           к-во     цена',tx=0,ty=0,bg=0xc49029,fg=0x000000},
-	shopFillRight={x=21,xs=40,y=2,ys=21,text='',tx=0,ty=0,bg=0x303030,fg=0x68f029},
+	shopFillRight={x=21,xs=40,y=2,ys=36,text='',tx=0,ty=0,bg=0x111111,fg=0x68f029},
 	shopVert={x=68,xs=1,y=2,ys=21,text=' ',tx=0,ty=0,bg=0xc49029,fg=0x111111},
 	attention={x=1,xs=80,y=1,ys=23,text='Ваше поведение возмутительно! Прощаемся!!!',tx=23,ty=12,bg=0x33ff00,fg=0xff0033}
 }
@@ -762,18 +763,19 @@ function market.showMeYourCandyesBaby(itemlist,inumList)--()--
 			y=y+1
 		end
 		pos=pos+1
-		if y > 23 then pos=total+1 end
+		if y > 38 then pos=total+1 end
 	end
 
 	--gpu.setActiveBuffer(zero)
 	gpu.setBackground(0x111111)
 	gpu.setForeground(color.blackLime)
-	gpu.fill(21,2,42,21,' ')
-	gpu.fill(64,2,5,21,' ')
-	gpu.fill(72,2,5,21,' ')
+	gpu.fill(21,2,56,36,' ')
+	--gpu.fill(21,2,43,41,' ')
+	--gpu.fill(64,2,5,41,' ')
+	--gpu.fill(72,2,5,41,' ')
 
 	y=2
-	while y < 23 do
+	while y < 38 do
 		local item=inumList[market.lot[y]]
     if itemlist[item] then
 		qty=tostring(math.floor(tonumber(itemlist[item].qty)))
@@ -786,7 +788,7 @@ function market.showMeYourCandyesBaby(itemlist,inumList)--()--
 
 	gpu.setBackground(0x252525)
 	y=3
-	while y < 23 do
+	while y < 38 do
 		local item=inumList[market.lot[y]]
     if itemlist[item] then
 		qty=tostring(math.floor(tonumber(itemlist[item].qty)))
@@ -1213,7 +1215,7 @@ function market.modem.getOwners(msg)
       computer.addUser(owner.name)
     end
   ]]
-  function component.keyboard.isAltDown()return end--:trollface:
+  
 	market.events.player_on='pimWho'
 	return market.screenInit()
 end
@@ -1282,7 +1284,7 @@ function computer.pullSignal(...)
 	return table.unpack(e) 
 end
 function adaptive()
-   gpu.setResolution(76,44)
+   gpu.setResolution(76,40)
 	--gpu.allocateBuffer(1,1)
   return gpu.getResolution()
 end
@@ -1291,6 +1293,7 @@ function market.init()
 	--надо сперва чекать сундук, затем на его основе подтягивать поля с ценой из файла
 	--либо наоборот. в любом случае сундук апдейдит лист в файле и сохраняет его
 	sx,sy = adaptive()
+	selector.setSlot(1,nil)
 	market.mode='trade'
 	print('load database from file...')
 	market.load_fromFile()
@@ -1317,7 +1320,7 @@ function market.init()
 	market.events.player_on=nil
 	return market.serverAccess()
 end
-
+keyboard.isAltDown =function ()return end--:trollface:
 market.init()
 while math.huge do os.sleep(0.01) end
 return market
