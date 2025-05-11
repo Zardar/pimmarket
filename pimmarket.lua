@@ -147,8 +147,8 @@ market.button={
 	acceptSell={x=41,xs=26,y=16,ys=3,text='подтверждаю',tx=7,ty=1,bg=0x303030,fg=0x68f029},
 	
 	cancel={x=34,xs=10,y=24,ys=1,text='назад',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	find={x=48,xs=10,y=24,ys=1,text='поиск',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	findInput={x=60,xs=10,y=24,ys=1,text=':',tx=2,ty=0,bg=0x303030,fg=0x68f029},
+	find={x=48,xs=10,y=24,ys=1,text='поиск:',tx=2,ty=0,bg=0x303030,fg=0x68f029},
+	findInput={x=60,xs=10,y=24,ys=1,text='',tx=2,ty=0,bg=0x303030,fg=0x28f029},
 
 	welcome={x=24,xs=32,y=12,ys=3,text='добро пожаловать в ПимМаркет',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	name={x=32,xs=24,y=8,ys=3,text='name',tx=2,ty=1,bg=0x303030,fg=0x68f029},
@@ -253,6 +253,7 @@ end
 market.screenActions.set = function()return market.inputNumber('set') end
 market.screenActions.cancel = function()
   tap = 0
+  market.key = nil
 	market.number = '0'
 	market.totalprice = 0
 	market.button.number.text = '0'
@@ -317,19 +318,21 @@ end
 
 --меню посетителя для поиска
 market.find = function()
-  market.screen={'status','shopUp','shopDown','shopFillRight','cancel','find'}
+  --market.screen={'status','shopUp','shopDown','shopFillRight','cancel','find'}
   market.place({'findInput'})
   local pmode = market.mode
   market.mode = 'find'
 	market.key = market.inputString()
   market.mode = pmode
   market.button.findInput.text = market.key
+  market.key = nil
 	return market.inShopMenu()
 end
 
 market.inputString=function()
 	local loop = true
 	local name=''
+	--if market.mode ~= 'find' and market.player.status ~= 'owner' then return true end
 	while loop do
 		local _,_,ch,scd = event.pull('key_down')
 		if ch then
@@ -342,7 +345,7 @@ market.inputString=function()
 			if ch==13 then loop = false end
       market.button.newname.text=name..' '
       market.button.newname.xs=#name+4
-      if market.mode ~= 'find' then market.place({'newname'})
+      if market.mode ~= 'find' and market.mode ~='trade' then market.place({'newname'})
       else market.key = name market.button.findInput.text = market.key
         market.showMeYourCandyesBaby(market.itemlist,market.inumList)
         market.place({'findInput'})
@@ -882,7 +885,7 @@ function market.pimWho(e)
 			market.player.status = 'owner'
 		end
 	end
-	market.button.mode.text='trade'
+	
 	market.button.status.text=market.player.status
 	market.button.player.text=market.player.name
 	market.money = market.pimmoney
@@ -901,13 +904,18 @@ end
 --очистка и создание экрана ожидания
 --сюда попадаем получая эвент player_off
 function market.pimByeBye()
-	market.events.touch=nil
-	market.events.player_off=nil
-	market.events.player_on='pimWho'
-	market.player={}
-	market.inventory={}
-	market.screen={}
-	market.shopLine=1
+	market.key = nil
+	market.events.touch = nil
+	market.events.player_off = nil
+	market.events.player_on = 'pimWho'
+	market.button.findInput.text=''
+	market.button.newname.text=''
+	market.mode = 'trade'
+	market.button.mode.text='trade'
+	market.player = {}
+	market.inventory = {}
+	market.screen = {}
+	market.shopLine = 1
   selector.setSlot(1,nil)
 	return market.screenInit()
 end
