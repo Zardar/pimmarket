@@ -150,8 +150,8 @@ market.button={
 	acceptSell={x=41,xs=26,y=16,ys=3,text='подтверждаю',tx=7,ty=1,bg=0x303030,fg=0x68f029},
 	
 	cancel={x=34,xs=10,y=40,ys=1,text='назад',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	find={x=48,xs=8,y=40,ys=1,text='поиск:',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	findInput={x=58,xs=14,y=40,ys=1,text='',tx=2,ty=0,bg=0x303030,fg=0x28f029},
+	find={x=48,xs=8,y=40,ys=1,text='поиск:',tx=1,ty=0,bg=0x303030,fg=0x68f029},
+	findInput={x=58,xs=14,y=40,ys=1,text='',tx=1,ty=0,bg=0x303030,fg=0x28f029},
 
 	welcome={x=24,xs=32,y=12,ys=3,text='добро пожаловать в ПимМаркет',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	name={x=32,xs=24,y=8,ys=3,text='name',tx=2,ty=1,bg=0x303030,fg=0x68f029},
@@ -753,17 +753,20 @@ function market.showMeYourCandyesBaby(itemlist,inumList)--()--
 		local item=inumList[pos]
     local show = true
     if filter ~= '' then 
-      if not itemlist[item].display_name:lower():find(filter,1,true) then
-        show = false
-        skipped_items = skipped_items + 1
-      end
-      
-    	elseif tostring(itemlist[item].sell_price) == '9999' then
-    	if market.mode == 'trade' or market.mode =='find' then
+      if not itemlist[item].display_name:lower():find(filter,1,true) 
+ 
+    	then
     		show = false skipped_items = skipped_items + 1
-
       end
     end
+
+		if tostring(itemlist[item].sell_price) == '9999' and
+    		(market.mode == 'trade' or market.mode =='find' ) and show 
+    	then
+    	 	skipped_items = skipped_items + 1 show = false
+    end
+
+
     
 		if itemlist[item] and tonumber(itemlist[item].qty) > 0 and show then
 			market.lot[y]=pos
@@ -853,7 +856,9 @@ market.inShopMenu=function() --попадает сюда при выборе "к
 	market.replace()
 	market.place({'shopVert','shopTopRight','mode','totalitems','balancename','balance','cash','cashname','player'})
 	if price == 'buy_price' then market.place({'buy_mode'}) else market.place({'sell_mode'}) end
-	return market.showMeYourCandyesBaby(market.itemlist,market.inumList)
+	
+	market.showMeYourCandyesBaby(market.itemlist,market.inumList)
+	return market.find()
 end
 --если инвентарь игрока полон-------------------------------
 market.full=function()
