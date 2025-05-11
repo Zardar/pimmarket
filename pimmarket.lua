@@ -20,6 +20,7 @@ local me, pim, selector = {}, {}, {}
 local tap,pos,menu = 0,1,'screenInit'
 local emptySlot, price = true, 'sell_price'
 local inpuStringFlag = false
+local findFlag = false
 if component.isAvailable('openperipheral_selector') then
   selector = require('component').openperipheral_selector
 else selector = {setSlot=function(...) return nil end}
@@ -319,6 +320,7 @@ end
 
 --меню посетителя для поиска
 market.find = function()
+findflag = true
   --market.screen={'status','shopUp','shopDown','shopFillRight','cancel','find'}
   market.place({'findInput'})
   local pmode = market.mode
@@ -327,7 +329,8 @@ market.find = function()
   market.mode = pmode
   market.button.findInput.text = market.key
   market.key = nil
-	return market.inShopMenu()
+  findflag = false
+	return true -- market.inShopMenu()
 end
 
 market.inputString=function()
@@ -898,7 +901,9 @@ function market.pimWho(e)
 	market.button.name.text=who
 	market.button.name.xs=#who+4
 	market.button.name.x=36-#who/2
-	market.replace({'welcome','name','wait'})
+	market.clear()
+	market.place({'welcome','name','wait'})
+	--os.sleep(1)
 	--делаем запрос баланса на сервер
 	local msg={name=market.player.name,op='enter',number=market.msgnum,value='0'}
 	return market.serverPost(msg)
@@ -911,7 +916,6 @@ function market.pimByeBye()
 	market.events.touch = nil
 	market.events.player_off = nil
 	market.events.player_on = 'pimWho'
-
 	--market.button.findInput.text=''
 	--market.button.newname.text=''
 
@@ -1119,7 +1123,7 @@ end
 
 --замена кнопок экрана: вызов очистки и прорисовки
 function market.replace()
-	market.clear(0x111111)
+	market.clear()--(0x111111)
   
 	return market.place(market.screen)
 end
