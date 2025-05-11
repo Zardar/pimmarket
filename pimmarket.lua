@@ -282,7 +282,8 @@ market.screenActions.status=function()
 		market.mode = 'trade'	
 	end
 	market.button.mode.text=market.mode
-	return market.place({'mode'})
+	market.place({'mode'})
+	return market.showMeYourCandyesBaby(market.itemlist,market.inumList)
 end
 --================================================================
 market.mainMenu=function()
@@ -756,6 +757,13 @@ function market.showMeYourCandyesBaby(itemlist,inumList)--()--
         show = false
         skipped_items = skipped_items + 1
       end
+      
+    	elseif tostring(itemlist[item].sell_price) == '9999' then
+    	if market.mode == 'edit' or market.mode =='rename'then
+    	else
+    		show = false skipped_items = skipped_items + 1
+
+      end
     end
     
 		if itemlist[item] and tonumber(itemlist[item].qty) > 0 and show then
@@ -770,9 +778,6 @@ function market.showMeYourCandyesBaby(itemlist,inumList)--()--
 	gpu.setBackground(0x111111)
 	gpu.setForeground(color.blackLime)
 	gpu.fill(21,2,56,36,' ')
-	--gpu.fill(21,2,43,41,' ')
-	--gpu.fill(64,2,5,41,' ')
-	--gpu.fill(72,2,5,41,' ')
 
 	y=2
 	while y < 38 do
