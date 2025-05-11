@@ -150,8 +150,8 @@ market.button={
 	acceptSell={x=41,xs=26,y=16,ys=3,text='подтверждаю',tx=7,ty=1,bg=0x303030,fg=0x68f029},
 	
 	cancel={x=34,xs=10,y=40,ys=1,text='назад',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	find={x=48,xs=10,y=40,ys=1,text='поиск:',tx=2,ty=0,bg=0x303030,fg=0x68f029},
-	findInput={x=60,xs=10,y=40,ys=1,text='',tx=2,ty=0,bg=0x303030,fg=0x28f029},
+	find={x=48,xs=8,y=40,ys=1,text='поиск:',tx=2,ty=0,bg=0x303030,fg=0x68f029},
+	findInput={x=58,xs=14,y=40,ys=1,text='',tx=2,ty=0,bg=0x303030,fg=0x28f029},
 
 	welcome={x=24,xs=32,y=12,ys=3,text='добро пожаловать в ПимМаркет',tx=2,ty=1,bg=0x303030,fg=0x68f029},
 	name={x=32,xs=24,y=8,ys=3,text='name',tx=2,ty=1,bg=0x303030,fg=0x68f029},
@@ -256,7 +256,7 @@ end
 market.screenActions.set = function()return market.inputNumber('set') end
 market.screenActions.cancel = function()
   tap = 0
-  market.key = nil
+  market.key = ''
 	market.number = '0'
 	market.totalprice = 0
 	market.button.number.text = '0'
@@ -330,7 +330,7 @@ findflag = true
 	market.key = market.inputString()
   market.mode = pmode
   market.button.findInput.text = market.key
-  market.key = nil
+  market.key = ''
   findflag = false
 	return true -- market.inShopMenu()
 end
@@ -759,8 +759,7 @@ function market.showMeYourCandyesBaby(itemlist,inumList)--()--
       end
       
     	elseif tostring(itemlist[item].sell_price) == '9999' then
-    	if market.mode == 'edit' or market.mode =='rename'then
-    	else
+    	if market.mode == 'trade' or market.mode =='find' then
     		show = false skipped_items = skipped_items + 1
 
       end
